@@ -61,8 +61,26 @@ core node    : r6g.2xlarge (8 vCore, 61.0 GiB memory)
 --conf spark.executor.cores=3
 <pyspark script file path> 
 ```
-I thought, I will fine tune by explicitly mentioning the number of executor 4 and cores 3, to my surprise job didn't complete even after 1 hour and failed, I couldn't get exact error in stderr and Spark UI.
+I thought, I will fine tune by explicitly mentioning the number of executor 4 and cores 3, to my surprise job didn't complete even after 1 hour and failed, I couldn't get exact error in stderr and Spark UI. Just it was saying task killed.
 
+On next attempt, I tried with one core node with 30.5gb memory.
 Primary node : r6g.xlarge (4 vCore, 30.5 GiB memory)
 core node    : r6g.xlarge (4 vCore, 30.5 GiB memory)
-My thought was, job may take more time when both compute and memory reduced, to my surprise, job didn't complete even after one hour, I didn't get any clue in Spark UI to understand what happening, All I could notice is job was having one executor with 
+My thought was, job may take more time when both compute and memory reduced, to my surprise, job didn't complete even after 35 minutes. writing task were not getting completed.
+
+Noticed that shuffle was taking more time, got suggestion to use shuffle partition instead of repartition on dataframe. here is the new configuration.
+Primary node : r6g.xlarge (4 vCore, 30.5 GiB memory)
+core node    : NO CORE !!
+```
+/usr/bin/spark-submit --packages software.amazon.awssdk:ssm:2.17.157
+--jars s3://rovi-cdw/airflow-tvdm/ppe/jars/dependencies/mysql-connector-j-8.2.0.jar
+--deploy-mode client
+--master yarn
+--conf spark.driver.memory=5g
+--conf spark.executor.memory=11g
+--conf spark.sql.shuffle.partitions=10
+<pyspark script file path> 
+```
+Now, number of executor and executor core are not configureed left it to spark to decide on executor memory. it worked like a charm. along with while reading the MySQL table also applied "numPartitions"=10, with out this option whole job created single task and also task called garbage collection (GC), with numPartitions=10 , 10 tasks were created and ran parallely and task were completed smoothly.
+
+https://us-east-1.console.aws.amazon.com/emr/home?region=us-east-1#/clusterDetails/j-3RIQ9K05N52VB
