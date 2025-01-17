@@ -83,4 +83,5 @@ core node    : NO CORE !!
 ```
 Now, number of executor and executor core are not configureed left it to spark to decide on executor memory. it worked like a charm. along with while reading the MySQL table also applied "numPartitions"=10, with out this option whole job created single task and also task called garbage collection (GC), with numPartitions=10 , 10 tasks were created and ran parallely and task were completed smoothly.
 
-https://us-east-1.console.aws.amazon.com/emr/home?region=us-east-1#/clusterDetails/j-3RIQ9K05N52VB
+<img width="481" alt="image" src="https://github.com/user-attachments/assets/b0ceaaad-542b-47b1-aac7-ea6fd3824fd0" />
+
